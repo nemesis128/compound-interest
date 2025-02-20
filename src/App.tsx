@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useState, useRef } from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 import FormComponent, { CalculationData } from "./components/FormComponent";
 import ChartComponent from "./components/ChartComponent";
 import { ChartData } from "chart.js";
@@ -9,9 +9,12 @@ import html2canvas from "html2canvas";
 
 const App: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData<"bar"> | null>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
+  // Se almacena la última información ingresada para incluirla en el PDF
+  const [inputData, setInputData] = useState<CalculationData | null>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const calculateData = (data: CalculationData) => {
+    setInputData(data);
     const {
       initialInvestment,
       recurrentInvestment,
@@ -19,7 +22,7 @@ const App: React.FC = () => {
       period,
       periodType,
     } = data;
-    // Límite: 10 años para anual, 60 meses (5 años) para mensual
+    // Límite: 10 años para anual, 60 meses para mensual
     const totalPeriods =
       periodType === "anual" ? Math.min(period, 10) : Math.min(period, 60);
 
@@ -28,13 +31,16 @@ const App: React.FC = () => {
     const recurrentArr: number[] = [];
     const interestArr: number[] = [];
 
-    const currentInitial = initialInvestment;
+    let currentInitial = initialInvestment;
     let currentRecurrent = 0;
     let currentInterest = 0;
+    // Para anual se aplica la tasa anual, para mensual se divide entre 12
     const periodicRate =
       periodType === "anual" ? annualInterest / 100 : annualInterest / 100 / 12;
 
+    // En cada iteración, se suma la inversión recurrente por el periodo (año o mes)
     for (let i = 1; i <= totalPeriods; i++) {
+      // A partir del segundo periodo se agrega la inversión recurrente
       if (i > 1) {
         currentRecurrent += recurrentInvestment;
       }
@@ -73,18 +79,20 @@ const App: React.FC = () => {
   };
 
   const exportPDF = async () => {
-    if (!chartRef.current) return;
-    const canvas = await html2canvas(chartRef.current);
+    if (!exportRef.current) return;
+    // Se genera una imagen del contenedor que incluye gráfico e inputs
+    const canvas = await html2canvas(exportRef.current);
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("landscape");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    // Abre el PDF en una nueva pestaña
+    // Se abre el PDF en una nueva pestaña
     window.open(pdf.output("bloburl"), "_blank");
   };
 
   return (
+    // Container fluid centrado vertical y horizontalmente
     <Container
       fluid
       className="d-flex align-items-center justify-content-center"
@@ -98,9 +106,10 @@ const App: React.FC = () => {
             </h1>
           </Col>
         </Row>
-        <Row className="mb-4">
-          <Col>
-            <div ref={chartRef}>
+        {/* Contenedor que engloba el gráfico y el formulario (incluye inputs) para la exportación */}
+        <div ref={exportRef}>
+          <Row className="mb-4">
+            <Col>
               {chartData ? (
                 <ChartComponent data={chartData} />
               ) : (
@@ -108,23 +117,36 @@ const App: React.FC = () => {
                   Realiza el cálculo para ver el gráfico
                 </p>
               )}
-            </div>
-          </Col>
-        </Row>
-        <Row className="mb-4">
-          <Col className="text-center">
-            {chartData && (
-              <Button variant="secondary" onClick={exportPDF}>
-                Exportar PDF
-              </Button>
-            )}
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <FormComponent onCalculate={calculateData} />
-          </Col>
-        </Row>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <FormComponent
+                onCalculate={calculateData}
+                onExport={exportPDF}
+                exportEnabled={chartData !== null}
+              />
+            </Col>
+          </Row>
+          {/* Se muestra un resumen de los datos ingresados para que se incluya en el PDF */}
+          {inputData && (
+            <Row className="mt-4">
+              <Col>
+                <h5 className="text-center">Datos de la Inversión</h5>
+                <p className="text-center">
+                  <strong>Inversión Inicial:</strong>{" "}
+                  {inputData.initialInvestment} &nbsp;|&nbsp;
+                  <strong>Inversiones Recurrentes:</strong>{" "}
+                  {inputData.recurrentInvestment} &nbsp;|&nbsp;
+                  <strong>Tasa de Interés Anual:</strong>{" "}
+                  {inputData.annualInterest}% &nbsp;|&nbsp;
+                  <strong>Periodo de Inversión:</strong> {inputData.period}{" "}
+                  {inputData.periodType === "anual" ? "años" : "meses"}
+                </p>
+              </Col>
+            </Row>
+          )}
+        </div>
       </div>
     </Container>
   );
