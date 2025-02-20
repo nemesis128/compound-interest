@@ -1,12 +1,15 @@
 // src/App.tsx
-import React, { useState } from "react";
-import { Container, Row, Col } from "react-bootstrap";
+import React, { useState, useRef } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import FormComponent, { CalculationData } from "./components/FormComponent";
 import ChartComponent from "./components/ChartComponent";
 import { ChartData } from "chart.js";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const App: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData<"bar"> | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const calculateData = (data: CalculationData) => {
     const {
@@ -16,7 +19,7 @@ const App: React.FC = () => {
       period,
       periodType,
     } = data;
-    // Límite de años: 10 años; para mensuales: 5 años (60 meses)
+    // Límite: 10 años para anual, 60 meses (5 años) para mensual
     const totalPeriods =
       periodType === "anual" ? Math.min(period, 10) : Math.min(period, 60);
 
@@ -69,29 +72,60 @@ const App: React.FC = () => {
     setChartData(dataChart);
   };
 
+  const exportPDF = async () => {
+    if (!chartRef.current) return;
+    const canvas = await html2canvas(chartRef.current);
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("landscape");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    // Abre el PDF en una nueva pestaña
+    window.open(pdf.output("bloburl"), "_blank");
+  };
+
   return (
-    <Container className="my-4">
-      <Row>
-        <Col>
-          <h1 className="text-center">Calculadora de Interés Compuesto</h1>
-        </Col>
-      </Row>
-      <Row className="my-4">
-        <Col>
-          {chartData ? (
-            <ChartComponent data={chartData} />
-          ) : (
-            <p className="text-center">
-              Realiza el cálculo para ver el gráfico
-            </p>
-          )}
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <FormComponent onCalculate={calculateData} />
-        </Col>
-      </Row>
+    <Container
+      fluid
+      className="d-flex align-items-center justify-content-center"
+      style={{ minHeight: "100vh" }}
+    >
+      <div className="w-100" style={{ maxWidth: "960px" }}>
+        <Row>
+          <Col>
+            <h1 className="text-center mb-4">
+              Calculadora de Interés Compuesto
+            </h1>
+          </Col>
+        </Row>
+        <Row className="mb-4">
+          <Col>
+            <div ref={chartRef}>
+              {chartData ? (
+                <ChartComponent data={chartData} />
+              ) : (
+                <p className="text-center">
+                  Realiza el cálculo para ver el gráfico
+                </p>
+              )}
+            </div>
+          </Col>
+        </Row>
+        <Row className="mb-4">
+          <Col className="text-center">
+            {chartData && (
+              <Button variant="secondary" onClick={exportPDF}>
+                Exportar PDF
+              </Button>
+            )}
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <FormComponent onCalculate={calculateData} />
+          </Col>
+        </Row>
+      </div>
     </Container>
   );
 };
