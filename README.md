@@ -1,50 +1,56 @@
-# React + TypeScript + Vite
+# Calculadora de Interés Compuesto
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Bienvenido a la Calculadora de Interés Compuesto, una aplicación web creada con React, Vite y TypeScript que te permite estimar el crecimiento de una inversión inicial, junto con aportes recurrentes, usando el poder del interés compuesto.
 
-Currently, two official plugins are available:
+Esta aplicación está diseñada para ser sencilla, intuitiva y agradable a la vista, aprovechando los últimos estándares en UI/UX gracias a Bootstrap. Además, puedes exportar tus resultados a PDF para tener un registro visual de tu progreso.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## Características
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Cálculo de Interés Compuesto:**
+  La aplicación realiza cálculos compuestos de forma acumulativa. Esto significa que el interés generado se suma al principal para el siguiente periodo, permitiéndote ver cómo crece tu inversión a lo largo del tiempo.
 
-- Configure the top-level `parserOptions` property like this:
+- **Modo de Visualización Flexible:**
+  Puedes elegir entre ver los resultados de forma anual o mensual. Si seleccionas "anual", el periodo de inversión se limita a 10 años; si eliges "mensual", se calcularán hasta 60 meses (5 años).
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- **Gráficos Interactivos:**
+  El progreso de tu inversión se muestra en un gráfico de barras apiladas, donde cada barra incluye:
+  - La inversión inicial.
+  - Las inversiones recurrentes acumuladas.
+  - El interés generado acumulado.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+- **Exportación a PDF:**
+  Con un solo clic, puedes exportar el gráfico y los datos de entrada a PDF para revisarlos o compartirlos fácilmente.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- **Diseño Centrado y Accesible:**
+  Toda la interfaz está cuidadosamente centrada (tanto vertical como horizontalmente) para ofrecer una experiencia de usuario limpia y profesional.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+---
+
+## Requerimientos
+
+Para trabajar con este proyecto necesitarás:
+
+- **Node.js y npm:**
+  Asegúrate de tener instaladas las últimas versiones de [Node.js](https://nodejs.org/) y npm.
+
+- **Vite:**
+  Usamos Vite para una experiencia de desarrollo rápida y moderna.
+
+- **Dependencias principales:**
+  - React y ReactDOM con TypeScript.
+  - Bootstrap y react-bootstrap para una interfaz de usuario atractiva y accesible.
+  - Chart.js y react-chartjs-2 para la visualización de datos.
+  - jsPDF y html2canvas para la exportación a PDF.
+
+---
+
+## Instalación y Configuración
+
+1. **Clona el repositorio o crea un nuevo proyecto usando Vite y TypeScript:**
+
+   ```bash
+   npm create vite@latest compound-interest-app -- --template react-ts
+   cd compound-interest-app
+   npm install
